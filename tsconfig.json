@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2017",
-    "module": "commonjs",
+    "module": "ES2020",
     "baseUrl": "./src",
     "rootDir": "./src",
     "sourceMap": true,
@@ -21,5 +21,5 @@
     }
   },
   "exclude": ["node_modules", "build", "dist", "dist_local", ".serverless"],
-  "include": ["**/*.ts", "**/*.js", "**/*.tsx"]
+  "include": ["./src"]
 }
