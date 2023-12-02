@@ -1,7 +1,9 @@
+import { Server } from "http";
 import { HealthCheckManager } from "./healthCheckManager";
+import express from "express"
 
 export interface ServiceConfig {
-    healthCheckPort?: number;
+    port?: number;
     healthCheckEndpoint?: string;
     isCronJob: boolean
 }
@@ -11,28 +13,31 @@ export interface ServiceConfig {
  * It provides some of the basic requried functionality, such as starting the health check manager.
  */
 export abstract class Service {
-    healthCheckPort: number;
-    healthCheckEndpoint: string;
-    isCronJob: boolean;
+    private port: number;
+    private healthCheckEndpoint: string;
+    private isCronJob: boolean;
     private healthCheckManager: HealthCheckManager;
+    expressApp: express.Application;
+    private expressServer: Server | null = null;
 
     constructor(config: ServiceConfig) {
-        this.healthCheckPort = config.healthCheckPort ?? 10000;
+        this.port = config.port ?? 10000;
         this.healthCheckEndpoint = config.healthCheckEndpoint ?? "/";
         this.isCronJob = config.isCronJob;
 
-        this.healthCheckManager = new HealthCheckManager(this.healthCheckPort, this.healthCheckEndpoint);
+        this.expressApp = express()
+        this.expressServer = this.expressApp.listen(this.port)
+        this.healthCheckManager = new HealthCheckManager(this.expressApp, this.healthCheckEndpoint);
     }
 
     // Starts the health check manager and runs the microservice
     async start() {
-        this.healthCheckManager.start();
         await this.run()
 
         // Terminate after execution if the microservice is a cron job, in order to prevent it from hanging
         if(this.isCronJob) {
-            //this.stop()
-            this.healthCheckManager.stop()
+            this.expressServer.close()
+            this.stop()
         }
     }
 

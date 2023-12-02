@@ -1,51 +1,43 @@
 // src/healthCheckManager.ts
-import express from "express";
 var HealthCheckManager = class {
   port;
   app;
-  server = null;
   /**
    * 
    * @param port The port to run the healthcheck endpoint on. Usually will be 10000
    * @param endpoint The path to run the healthcheck endpoint on. Usually will be "/"
    */
-  constructor(port, endpoint = "/healthz") {
-    this.port = port;
-    this.app = express();
+  constructor(expressApp, endpoint = "/healthz") {
+    this.app = expressApp;
     this.app.get(endpoint, (req, res) => {
       res.status(200).send("");
     });
   }
-  /**
-   * Starts the healthcheck endpoint
-   */
-  start() {
-    this.server = this.app.listen(this.port);
-  }
-  stop() {
-    var _a;
-    (_a = this.server) == null ? void 0 : _a.close();
-  }
 };
 
 // src/service.ts
+import express from "express";
 var Service = class {
-  healthCheckPort;
+  port;
   healthCheckEndpoint;
   isCronJob;
   healthCheckManager;
+  expressApp;
+  expressServer = null;
   constructor(config) {
-    this.healthCheckPort = config.healthCheckPort ?? 1e4;
+    this.port = config.port ?? 1e4;
     this.healthCheckEndpoint = config.healthCheckEndpoint ?? "/";
     this.isCronJob = config.isCronJob;
-    this.healthCheckManager = new HealthCheckManager(this.healthCheckPort, this.healthCheckEndpoint);
+    this.expressApp = express();
+    this.expressServer = this.expressApp.listen(this.port);
+    this.healthCheckManager = new HealthCheckManager(this.expressApp, this.healthCheckEndpoint);
   }
   // Starts the health check manager and runs the microservice
   async start() {
-    this.healthCheckManager.start();
     await this.run();
     if (this.isCronJob) {
-      this.healthCheckManager.stop();
+      this.expressServer.close();
+      this.stop();
     }
   }
   // Stops the microservice
