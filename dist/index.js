@@ -35,7 +35,7 @@ __export(src_exports, {
 module.exports = __toCommonJS(src_exports);
 
 // src/healthCheckManager.ts
-var express = __toESM(require("express"));
+var import_express = __toESM(require("express"));
 var HealthCheckManager = class {
   port;
   app;
@@ -47,7 +47,7 @@ var HealthCheckManager = class {
    */
   constructor(port, endpoint = "/healthz") {
     this.port = port;
-    this.app = express();
+    this.app = (0, import_express.default)();
     this.app.get(endpoint, (req, res) => {
       res.status(200).send("");
     });
