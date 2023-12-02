@@ -32,6 +32,8 @@ const service = new MyService({
     healthCheckPort: 10000, //Defaults to 10000
     healthCheckEndpoint: "/healthz" //Defaults to "/"
 })
+
+service.start()
 ```
 
 In the above example, index.ts would be the entry point for your service.
